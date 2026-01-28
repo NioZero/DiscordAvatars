@@ -140,9 +140,16 @@ namespace DiscordAvatars.ViewModels
             }
 
             var guilds = await _apiClient.GetGuildsAsync(token, CancellationToken.None);
-            foreach (var guild in guilds)
+            var filtered = guilds.Where(g => g.HasMemberListAccess).ToList();
+
+            foreach (var guild in filtered)
             {
                 Guilds.Add(guild);
+            }
+
+            if (Guilds.Count == 0 && guilds.Count > 0)
+            {
+                StatusMessage = "No tienes permisos para listar usuarios en tus servidores.";
             }
 
             if (SelectedGuild == null && Guilds.Count > 0)
