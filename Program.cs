@@ -6,7 +6,7 @@ using Microsoft.Windows.ApplicationModel.DynamicDependency;
 
 namespace DiscordAvatars
 {
-    internal static class Program
+    internal static class BootstrapProgram
     {
         [STAThread]
         private static void Main(string[] args)

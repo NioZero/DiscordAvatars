@@ -12,7 +12,7 @@
         <WindowsPackageType>None</WindowsPackageType>
         <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
         <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
-        <StartupObject>DiscordAvatars.Program</StartupObject>
+        <StartupObject>DiscordAvatars.BootstrapProgram</StartupObject>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
