@@ -22,7 +22,9 @@
             <ContentControl Grid.Row="1" IsEnabled="{Binding IsActive}">
                 <StackPanel>
                     <ComboBox
-                        ItemsSource="{Binding Members}"
+                        ItemsSource="{Binding FilteredMembers}"
+                        IsEditable="True"
+                        Text="{Binding SearchText, Mode=TwoWay}"
                         SelectedItem="{Binding SelectedMember, Mode=TwoWay}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>

@@ -3,6 +3,8 @@ using DiscordAvatars.Models;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
 
 namespace DiscordAvatars.ViewModels
 {
@@ -12,13 +14,18 @@ namespace DiscordAvatars.ViewModels
         private DiscordUser? _selectedMember;
         private string _displayName = "Sin seleccionar";
         private BitmapImage? _avatarImage;
+        private string _searchText = string.Empty;
 
         public MemberSlotViewModel(ObservableCollection<DiscordUser> members)
         {
             Members = members;
+            FilteredMembers = new ObservableCollection<DiscordUser>();
+            Members.CollectionChanged += OnMembersChanged;
+            RefreshFilteredMembers();
         }
 
         public ObservableCollection<DiscordUser> Members { get; }
+        public ObservableCollection<DiscordUser> FilteredMembers { get; }
 
         public bool IsActive
         {
@@ -38,6 +45,18 @@ namespace DiscordAvatars.ViewModels
             }
         }
 
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (SetProperty(ref _searchText, value))
+                {
+                    RefreshFilteredMembers();
+                }
+            }
+        }
+
         public string DisplayName
         {
             get => _displayName;
@@ -52,6 +71,7 @@ namespace DiscordAvatars.ViewModels
 
         public void Reset()
         {
+            SearchText = string.Empty;
             SelectedMember = null;
         }
 
@@ -63,6 +83,39 @@ namespace DiscordAvatars.ViewModels
             AvatarImage = string.IsNullOrWhiteSpace(avatarUrl)
                 ? null
                 : new BitmapImage(new Uri(avatarUrl));
+
+            if (!string.IsNullOrWhiteSpace(SelectedMember?.DisplayName))
+            {
+                SearchText = string.Empty;
+            }
+        }
+
+        private void OnMembersChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            RefreshFilteredMembers();
+        }
+
+        private void RefreshFilteredMembers()
+        {
+            var query = SearchText?.Trim() ?? string.Empty;
+            var filtered = string.IsNullOrWhiteSpace(query)
+                ? Members.ToList()
+                : Members.Where(m =>
+                        (m.DisplayName?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        (m.Username?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false))
+                    .ToList();
+
+            var selected = SelectedMember;
+            if (selected != null && filtered.All(m => m.Id != selected.Id))
+            {
+                filtered.Insert(0, selected);
+            }
+
+            FilteredMembers.Clear();
+            foreach (var member in filtered)
+            {
+                FilteredMembers.Add(member);
+            }
         }
     }
 }

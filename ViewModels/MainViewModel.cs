@@ -107,7 +107,7 @@ namespace DiscordAvatars.ViewModels
             Guilds.Clear();
 
             var guilds = await _apiClient.GetGuildsAsync(CancellationToken.None);
-            foreach (var guild in guilds)
+            foreach (var guild in guilds.OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase))
             {
                 Guilds.Add(guild);
             }
@@ -182,7 +182,7 @@ namespace DiscordAvatars.ViewModels
                 SelectedGuild.Id,
                 CancellationToken.None);
 
-            foreach (var member in members)
+            foreach (var member in members.OrderBy(m => m.DisplayName, StringComparer.OrdinalIgnoreCase))
             {
                 Members.Add(member);
             }
