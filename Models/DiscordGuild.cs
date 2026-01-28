@@ -14,7 +14,8 @@ namespace DiscordAvatars.Models
         public string? IconHash { get; set; }
 
         [JsonPropertyName("permissions")]
-        public string? PermissionsRaw { get; set; }
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public ulong Permissions { get; set; }
 
         [JsonIgnore]
         public string? IconUrl
@@ -29,9 +30,6 @@ namespace DiscordAvatars.Models
                 return $"https://cdn.discordapp.com/icons/{Id}/{IconHash}.png";
             }
         }
-
-        [JsonIgnore]
-        public ulong Permissions => ulong.TryParse(PermissionsRaw, out var value) ? value : 0;
 
         [JsonIgnore]
         public bool HasAdministrator => (Permissions & DiscordPermissionBits.Administrator) != 0;
