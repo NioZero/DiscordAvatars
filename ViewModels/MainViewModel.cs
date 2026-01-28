@@ -481,10 +481,24 @@ namespace DiscordAvatars.ViewModels
                 return;
             }
 
-            var file = await Windows.Storage.StorageFile.GetFileFromApplicationUriAsync(new Uri(sourceUri));
-            using var input = await file.OpenStreamForReadAsync();
-            using var output = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
-            await input.CopyToAsync(output);
+            if (sourceUri.StartsWith("ms-appx", StringComparison.OrdinalIgnoreCase))
+            {
+                var uri = new Uri(sourceUri);
+                var relativePath = uri.AbsolutePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+                var localPath = Path.Combine(AppContext.BaseDirectory, relativePath);
+
+                if (!File.Exists(localPath))
+                {
+                    throw new FileNotFoundException($"No se encontro el placeholder en {localPath}.");
+                }
+
+                using var input = new FileStream(localPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var output = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                await input.CopyToAsync(output);
+                return;
+            }
+
+            throw new InvalidOperationException("Formato de imagen no soportado.");
         }
 
         private static bool TryEnsureWritable(string path, out string message)

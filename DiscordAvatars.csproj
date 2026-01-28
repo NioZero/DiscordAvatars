@@ -27,9 +27,15 @@
         <Manifest Include="$(ApplicationManifest)" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Models\" />
-    </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\Placeholders\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
 
 
