@@ -34,6 +34,8 @@ jobs:
           -r win-x64
           --self-contained true
           /p:PublishSingleFile=false
+          /p:WindowsAppSDKSelfContained=true
+          /p:WindowsPackageType=None
           /p:PublishTrimmed=false
           /p:Version=${{ inputs.version }}
           /p:FileVersion=${{ inputs.version }}
@@ -44,7 +46,7 @@ jobs:
         shell: pwsh
         run: |
           $zip = "DiscordAvatars-${{ inputs.version }}-win-x64.zip"
-          Compress-Archive -Path ".\artifacts\DiscordAvatars-${{ inputs.version }}\*" -DestinationPath $zip
+          Compress-Archive -Path ".\artifacts\DiscordAvatars-${{ inputs.version }}" -DestinationPath $zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
