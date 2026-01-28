@@ -13,7 +13,9 @@ namespace DiscordAvatars
         {
             WinRT.ComWrappersSupport.InitializeComWrappers();
 
-            if (!Bootstrap.TryInitialize(0x00010008, null, out var error))
+            var version = new PackageVersion(1, 8, 0, 0);
+            if (!Bootstrap.TryInitialize(0x00010008, "Microsoft.WindowsAppRuntime.1.8", version, out var error)
+                && !Bootstrap.TryInitialize(0x00010008, null, version, out error))
             {
                 ShowBootstrapError(error);
                 return;
