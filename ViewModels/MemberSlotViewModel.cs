@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace DiscordAvatars.ViewModels
 {
-    public sealed class MemberSlotViewModel : ObservableObject
+    public sealed partial class MemberSlotViewModel : ObservableObject
     {
         private bool _isActive;
         private DiscordUser? _selectedMember;
@@ -16,14 +16,22 @@ namespace DiscordAvatars.ViewModels
         private BitmapImage? _avatarImage;
         private string _searchText = string.Empty;
         private readonly BitmapImage _placeholderImage;
+        private readonly string _placeholderUri;
 
-        public MemberSlotViewModel(ObservableCollection<DiscordUser> members, string placeholderUri)
+        public MemberSlotViewModel(
+            ObservableCollection<DiscordUser> members,
+            string placeholderUri,
+            string defaultTextFileName,
+            string defaultImageFileName)
         {
             Members = members;
             FilteredMembers = new ObservableCollection<DiscordUser>();
             Members.CollectionChanged += OnMembersChanged;
+            _placeholderUri = placeholderUri;
             _placeholderImage = new BitmapImage(new Uri(placeholderUri));
             _avatarImage = _placeholderImage;
+            TextFileName = defaultTextFileName;
+            ImageFileName = defaultImageFileName;
             RefreshFilteredMembers();
         }
 
@@ -66,6 +74,12 @@ namespace DiscordAvatars.ViewModels
             private set => SetProperty(ref _displayName, value);
         }
 
+        [ObservableProperty]
+        private string textFileName = string.Empty;
+
+        [ObservableProperty]
+        private string imageFileName = string.Empty;
+
         public BitmapImage? AvatarImage
         {
             get => _avatarImage;
@@ -76,6 +90,11 @@ namespace DiscordAvatars.ViewModels
         {
             SearchText = string.Empty;
             SelectedMember = null;
+        }
+
+        public string GetPlaceholderUri()
+        {
+            return _placeholderUri;
         }
 
         private void UpdateSelectedMember()

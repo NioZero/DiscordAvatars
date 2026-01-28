@@ -84,10 +84,14 @@
             <views:MemberSlotControl Grid.Row="1" Grid.Column="1" Title="Player 4" DataContext="{Binding Slot4}" />
         </Grid>
 
-        <TextBlock
-            Grid.Row="4"
-            Text="{Binding FooterMessage}"
-            Opacity="0.7"
-            TextWrapping="Wrap" />
+        <StackPanel Grid.Row="4" Spacing="8">
+            <Button
+                Content="Actualizar Archivos"
+                Command="{Binding UpdateFilesCommand}" />
+            <TextBlock
+                Text="{Binding FooterMessage}"
+                Opacity="0.7"
+                TextWrapping="Wrap" />
+        </StackPanel>
     </Grid>
 </Window>

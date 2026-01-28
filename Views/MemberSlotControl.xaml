@@ -60,6 +60,16 @@
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
+                        <TextBox
+                            Header="Archivo TXT"
+                            HorizontalAlignment="Stretch"
+                            MinWidth="280"
+                            Text="{Binding TextFileName, Mode=TwoWay}" />
+                        <TextBox
+                            Header="Archivo PNG"
+                            HorizontalAlignment="Stretch"
+                            MinWidth="280"
+                            Text="{Binding ImageFileName, Mode=TwoWay}" />
                     </StackPanel>
                 </ContentControl>
             </Grid>

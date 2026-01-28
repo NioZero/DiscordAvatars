@@ -6,6 +6,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ namespace DiscordAvatars.ViewModels
 
         public IAsyncRelayCommand RefreshCommand { get; }
         public IAsyncRelayCommand RefreshMembersCommand { get; }
+        public IAsyncRelayCommand UpdateFilesCommand { get; }
 
         [ObservableProperty]
         private string statusMessage = "Listo.";
@@ -64,11 +66,12 @@ namespace DiscordAvatars.ViewModels
 
             RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => CanRefresh);
             RefreshMembersCommand = new AsyncRelayCommand(RefreshMembersAsync, () => CanRefreshMembers);
+            UpdateFilesCommand = new AsyncRelayCommand(UpdateFilesAsync, () => !IsBusy);
 
-            Slot1 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player1.png");
-            Slot2 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player2.png");
-            Slot3 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player3.png");
-            Slot4 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player4.png");
+            Slot1 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player1.png", "player1.txt", "player1.png");
+            Slot2 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player2.png", "player2.txt", "player2.png");
+            Slot3 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player3.png", "player3.txt", "player3.png");
+            Slot4 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player4.png", "player4.txt", "player4.png");
 
             UpdateButtonStates();
             _ = InitializeAsync();
@@ -388,6 +391,7 @@ namespace DiscordAvatars.ViewModels
             CanRefreshMembers = !IsBusy && SelectedGuild != null;
             RefreshCommand.NotifyCanExecuteChanged();
             RefreshMembersCommand.NotifyCanExecuteChanged();
+            UpdateFilesCommand.NotifyCanExecuteChanged();
         }
 
         private MemberSlotViewModel[] GetSlots()
@@ -412,6 +416,75 @@ namespace DiscordAvatars.ViewModels
             }
 
             Members.Insert(index, member);
+        }
+
+        private async Task UpdateFilesAsync()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedFolderPath))
+            {
+                FolderStatusMessage = "Selecciona una carpeta de salida.";
+                return;
+            }
+
+            if (!TryEnsureWritable(SelectedFolderPath, out var message))
+            {
+                FolderStatusMessage = message;
+                return;
+            }
+
+            FolderStatusMessage = string.Empty;
+            StatusMessage = "Actualizando archivos...";
+
+            var slots = GetSlots();
+            var errors = new List<string>();
+
+            foreach (var slot in slots)
+            {
+                try
+                {
+                    await WriteSlotFilesAsync(slot);
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(ex.Message);
+                }
+            }
+
+            StatusMessage = errors.Count == 0
+                ? "Archivos actualizados."
+                : $"Errores al escribir archivos: {errors.Count}.";
+        }
+
+        private async Task WriteSlotFilesAsync(MemberSlotViewModel slot)
+        {
+            var textFile = Path.Combine(SelectedFolderPath, slot.TextFileName);
+            var imageFile = Path.Combine(SelectedFolderPath, slot.ImageFileName);
+
+            var isActive = slot.IsActive && slot.SelectedMember != null;
+            var textContent = isActive ? slot.SelectedMember!.DisplayName : string.Empty;
+
+            Directory.CreateDirectory(SelectedFolderPath);
+            await File.WriteAllTextAsync(textFile, textContent);
+
+            var avatarUri = isActive ? slot.SelectedMember!.AvatarUrl : null;
+            var sourceUri = string.IsNullOrWhiteSpace(avatarUri) ? slot.GetPlaceholderUri() : avatarUri!;
+            await SaveImageAsync(sourceUri, imageFile);
+        }
+
+        private static async Task SaveImageAsync(string sourceUri, string destinationPath)
+        {
+            if (sourceUri.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                using var httpClient = new HttpClient();
+                var bytes = await httpClient.GetByteArrayAsync(sourceUri);
+                await File.WriteAllBytesAsync(destinationPath, bytes);
+                return;
+            }
+
+            var file = await Windows.Storage.StorageFile.GetFileFromApplicationUriAsync(new Uri(sourceUri));
+            using var input = await file.OpenStreamForReadAsync();
+            using var output = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            await input.CopyToAsync(output);
         }
 
         private static bool TryEnsureWritable(string path, out string message)
