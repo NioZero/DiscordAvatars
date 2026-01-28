@@ -37,13 +37,16 @@
 
             <ContentControl Grid.Column="1" Grid.Row="1" IsEnabled="{Binding IsActive}">
                 <StackPanel Spacing="6">
+                    <TextBox
+                        HorizontalAlignment="Stretch"
+                        MinWidth="280"
+                        PlaceholderText="Buscar usuario"
+                        Text="{Binding SearchText, Mode=TwoWay}" />
                     <ComboBox
                         HorizontalAlignment="Stretch"
                         MinWidth="280"
                         Width="Auto"
                         ItemsSource="{Binding FilteredMembers}"
-                        IsEditable="True"
-                        Text="{Binding SearchText, Mode=TwoWay}"
                         SelectedItem="{Binding SelectedMember, Mode=TwoWay}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
