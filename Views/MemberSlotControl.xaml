@@ -9,19 +9,36 @@
     <Border BorderBrush="Gray"
             BorderThickness="1"
             Padding="12">
-        <Grid RowSpacing="12">
+        <Grid ColumnSpacing="16" RowSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <CheckBox Content="Activo" IsChecked="{Binding IsActive, Mode=TwoWay}" />
+            <ContentControl Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" IsEnabled="{Binding IsActive}">
+                <Border
+                    Width="96"
+                    Height="96"
+                    BorderThickness="1"
+                    BorderBrush="Gray">
+                    <Image Source="{Binding AvatarImage}" Stretch="UniformToFill" />
+                </Border>
+            </ContentControl>
 
-            <ContentControl Grid.Row="1" IsEnabled="{Binding IsActive}">
-                <StackPanel>
+            <CheckBox
+                Grid.Column="1"
+                Grid.Row="0"
+                Content="Activo"
+                IsChecked="{Binding IsActive, Mode=TwoWay}" />
+
+            <ContentControl Grid.Column="1" Grid.Row="1" IsEnabled="{Binding IsActive}">
+                <StackPanel Spacing="6">
                     <ComboBox
+                        HorizontalAlignment="Stretch"
                         ItemsSource="{Binding FilteredMembers}"
                         IsEditable="True"
                         Text="{Binding SearchText, Mode=TwoWay}"
@@ -34,16 +51,6 @@
                     </ComboBox>
                     <TextBlock Text="{Binding DisplayName}" FontSize="16" />
                 </StackPanel>
-            </ContentControl>
-
-            <ContentControl Grid.Row="2" IsEnabled="{Binding IsActive}">
-                <Border
-                    Width="96"
-                    Height="96"
-                    BorderThickness="1"
-                    BorderBrush="Gray">
-                    <Image Source="{Binding AvatarImage}" Stretch="UniformToFill" />
-                </Border>
             </ContentControl>
         </Grid>
     </Border>
