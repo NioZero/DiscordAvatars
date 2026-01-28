@@ -42,5 +42,54 @@ namespace DiscordAvatars.Services
             var guilds = JsonSerializer.Deserialize<List<DiscordGuild>>(body, JsonOptions);
             return guilds ?? new List<DiscordGuild>();
         }
+
+        public async Task<IReadOnlyList<DiscordUser>> GetGuildMembersAsync(
+            string botToken,
+            string guildId,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(botToken))
+            {
+                throw new ArgumentException("Bot token vacio.", nameof(botToken));
+            }
+
+            if (string.IsNullOrWhiteSpace(guildId))
+            {
+                throw new ArgumentException("Guild id vacio.", nameof(guildId));
+            }
+
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{_options.ApiBase}/guilds/{guildId}/members?limit=1000");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bot", botToken);
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException($"Discord devolvio {response.StatusCode}: {body}");
+            }
+
+            var members = JsonSerializer.Deserialize<List<DiscordGuildMember>>(body, JsonOptions);
+            if (members == null)
+            {
+                return Array.Empty<DiscordUser>();
+            }
+
+            var users = new List<DiscordUser>(members.Count);
+            foreach (var member in members)
+            {
+                if (member.User == null)
+                {
+                    continue;
+                }
+
+                member.User.Nickname = member.Nick;
+                users.Add(member.User);
+            }
+
+            return users;
+        }
     }
 }

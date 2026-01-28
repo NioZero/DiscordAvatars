@@ -1,0 +1,68 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using DiscordAvatars.Models;
+using Microsoft.UI.Xaml.Media.Imaging;
+using System;
+using System.Collections.ObjectModel;
+
+namespace DiscordAvatars.ViewModels
+{
+    public sealed class MemberSlotViewModel : ObservableObject
+    {
+        private bool _isActive;
+        private DiscordUser? _selectedMember;
+        private string _displayName = "Sin seleccionar";
+        private BitmapImage? _avatarImage;
+
+        public MemberSlotViewModel(ObservableCollection<DiscordUser> members)
+        {
+            Members = members;
+        }
+
+        public ObservableCollection<DiscordUser> Members { get; }
+
+        public bool IsActive
+        {
+            get => _isActive;
+            set => SetProperty(ref _isActive, value);
+        }
+
+        public DiscordUser? SelectedMember
+        {
+            get => _selectedMember;
+            set
+            {
+                if (SetProperty(ref _selectedMember, value))
+                {
+                    UpdateSelectedMember();
+                }
+            }
+        }
+
+        public string DisplayName
+        {
+            get => _displayName;
+            private set => SetProperty(ref _displayName, value);
+        }
+
+        public BitmapImage? AvatarImage
+        {
+            get => _avatarImage;
+            private set => SetProperty(ref _avatarImage, value);
+        }
+
+        public void Reset()
+        {
+            SelectedMember = null;
+        }
+
+        private void UpdateSelectedMember()
+        {
+            DisplayName = SelectedMember?.DisplayName ?? "Sin seleccionar";
+
+            var avatarUrl = SelectedMember?.AvatarUrl;
+            AvatarImage = string.IsNullOrWhiteSpace(avatarUrl)
+                ? null
+                : new BitmapImage(new Uri(avatarUrl));
+        }
+    }
+}

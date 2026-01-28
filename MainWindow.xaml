@@ -3,7 +3,7 @@
     x:Class="DiscordAvatars.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:models="using:DiscordAvatars.Models"
+    xmlns:views="using:DiscordAvatars.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -25,20 +25,38 @@
                 Content="Actualizar servidores"
                 Command="{Binding RefreshCommand}"
                 IsEnabled="{Binding CanRefresh}" />
+            <Button
+                Content="Actualizar usuarios"
+                Command="{Binding RefreshMembersCommand}"
+                IsEnabled="{Binding CanRefreshMembers}" />
         </StackPanel>
 
-        <TextBlock Grid.Row="1" Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="Servidor:" VerticalAlignment="Center" />
+            <ComboBox
+                Width="320"
+                ItemsSource="{Binding Guilds}"
+                SelectedItem="{Binding SelectedGuild, Mode=TwoWay}"
+                DisplayMemberPath="Name"
+                IsEnabled="{Binding IsAuthenticated}" />
+            <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" VerticalAlignment="Center" />
+        </StackPanel>
 
-        <ListView Grid.Row="2" ItemsSource="{Binding Guilds}">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="models:DiscordGuild">
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <TextBlock Text="{x:Bind Name}" FontSize="16" />
-                        <TextBlock Text="{x:Bind Id}" Opacity="0.6" />
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        <Grid Grid.Row="2" ColumnSpacing="16" RowSpacing="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <views:MemberSlotControl Grid.Row="0" Grid.Column="0" DataContext="{Binding Slot1}" />
+            <views:MemberSlotControl Grid.Row="0" Grid.Column="1" DataContext="{Binding Slot2}" />
+            <views:MemberSlotControl Grid.Row="1" Grid.Column="0" DataContext="{Binding Slot3}" />
+            <views:MemberSlotControl Grid.Row="1" Grid.Column="1" DataContext="{Binding Slot4}" />
+        </Grid>
 
         <TextBlock
             Grid.Row="3"
