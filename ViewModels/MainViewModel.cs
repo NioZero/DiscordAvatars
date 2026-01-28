@@ -66,7 +66,10 @@ namespace DiscordAvatars.ViewModels
             if (!string.IsNullOrWhiteSpace(_options.BotToken))
             {
                 await RefreshAsync();
+                return;
             }
+
+            StatusMessage = "Falta DISCORD_BOT_TOKEN. Configuralo y reinicia la app.";
         }
 
         private async Task RefreshAsync()
@@ -104,7 +107,7 @@ namespace DiscordAvatars.ViewModels
                 Guilds.Add(guild);
             }
 
-            if (Guilds.Count == 0 && guilds.Count > 0)
+            if (Guilds.Count == 0)
             {
                 StatusMessage = "El bot no esta en ningun servidor disponible.";
             }
@@ -231,8 +234,8 @@ namespace DiscordAvatars.ViewModels
 
         private void UpdateButtonStates()
         {
-            CanRefresh = !IsBusy && !string.IsNullOrWhiteSpace(_options.BotToken);
-            CanRefreshMembers = !IsBusy && SelectedGuild != null && !string.IsNullOrWhiteSpace(_options.BotToken);
+            CanRefresh = !IsBusy;
+            CanRefreshMembers = !IsBusy && SelectedGuild != null;
             RefreshCommand.NotifyCanExecuteChanged();
             RefreshMembersCommand.NotifyCanExecuteChanged();
         }
