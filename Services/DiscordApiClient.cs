@@ -90,5 +90,48 @@ namespace DiscordAvatars.Services
 
             return users;
         }
+
+        public async Task<DiscordUser?> GetGuildMemberAsync(
+            string guildId,
+            string userId,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(_options.BotToken))
+            {
+                throw new InvalidOperationException("DISCORD_BOT_TOKEN no esta configurado.");
+            }
+
+            if (string.IsNullOrWhiteSpace(guildId) || string.IsNullOrWhiteSpace(userId))
+            {
+                return null;
+            }
+
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{_options.ApiBase}/guilds/{guildId}/members/{userId}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bot", _options.BotToken);
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException($"Discord devolvio {response.StatusCode}: {body}");
+            }
+
+            var member = JsonSerializer.Deserialize<DiscordGuildMember>(body, JsonOptions);
+            if (member?.User == null)
+            {
+                return null;
+            }
+
+            member.User.Nickname = member.Nick;
+            return member.User;
+        }
     }
 }

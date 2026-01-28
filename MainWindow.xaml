@@ -12,8 +12,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -29,27 +29,44 @@
         </StackPanel>
 
         <StackPanel Grid.Row="1" Spacing="6">
-            <StackPanel Orientation="Horizontal" Spacing="12">
+            <Grid ColumnSpacing="12" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
                 <Button
+                    Grid.Column="0"
                     Content="Seleccionar carpeta archivos"
-                    Click="OnSelectFolderClick" />
+                    Click="OnSelectFolderClick"
+                    VerticalAlignment="Center" />
                 <TextBlock
+                    Grid.Column="1"
                     Text="{Binding SelectedFolderPath}"
                     TextTrimming="CharacterEllipsis"
-                    Width="420" />
-            </StackPanel>
+                    VerticalAlignment="Center" />
+            </Grid>
             <TextBlock Text="{Binding FolderStatusMessage}" Foreground="Tomato" />
         </StackPanel>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
-            <TextBlock Text="Servidor:" VerticalAlignment="Center" />
+        <Grid Grid.Row="2" ColumnSpacing="12" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="320" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Servidor:" VerticalAlignment="Center" />
             <ComboBox
-                Width="320"
+                Grid.Column="1"
                 ItemsSource="{Binding Guilds}"
                 SelectedItem="{Binding SelectedGuild, Mode=TwoWay}"
-                DisplayMemberPath="Name" />
-            <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" VerticalAlignment="Center" />
-        </StackPanel>
+                DisplayMemberPath="Name"
+                VerticalAlignment="Center" />
+            <TextBlock
+                Grid.Column="2"
+                Text="{Binding StatusMessage}"
+                TextTrimming="CharacterEllipsis"
+                VerticalAlignment="Center" />
+        </Grid>
 
         <Grid Grid.Row="3" ColumnSpacing="16" RowSpacing="16">
             <Grid.RowDefinitions>

@@ -8,6 +8,9 @@ namespace DiscordAvatars.Models
         [JsonPropertyName("selectedGuildId")]
         public string? SelectedGuildId { get; set; }
 
+        [JsonPropertyName("selectedFolderPath")]
+        public string? SelectedFolderPath { get; set; }
+
         [JsonPropertyName("slots")]
         public List<SlotState> Slots { get; set; } = new List<SlotState>
         {

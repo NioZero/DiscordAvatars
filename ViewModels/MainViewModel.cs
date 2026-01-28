@@ -204,6 +204,11 @@ namespace DiscordAvatars.ViewModels
                 return;
             }
 
+            if (!string.IsNullOrWhiteSpace(state.SelectedFolderPath))
+            {
+                SetSelectedFolder(state.SelectedFolderPath);
+            }
+
             _isRestoringState = true;
             try
             {
@@ -227,10 +232,10 @@ namespace DiscordAvatars.ViewModels
             }
 
             await LoadMembersAsync();
-            ApplySlots(state);
+            await RestoreSlotSelectionsAsync(state);
         }
 
-        private void ApplySlots(AppState state)
+        private async Task RestoreSlotSelectionsAsync(AppState state)
         {
             var slots = GetSlots();
             for (var index = 0; index < slots.Length; index++)
@@ -239,14 +244,27 @@ namespace DiscordAvatars.ViewModels
                 var slotState = state.Slots.Count > index ? state.Slots[index] : null;
                 slot.IsActive = slotState?.IsActive ?? false;
 
-                if (!string.IsNullOrWhiteSpace(slotState?.SelectedUserId))
-                {
-                    slot.SelectedMember = Members.FirstOrDefault(m => m.Id == slotState.SelectedUserId);
-                }
-                else
+                if (string.IsNullOrWhiteSpace(slotState?.SelectedUserId))
                 {
                     slot.SelectedMember = null;
+                    continue;
                 }
+
+                var member = Members.FirstOrDefault(m => m.Id == slotState.SelectedUserId);
+                if (member == null && SelectedGuild != null)
+                {
+                    member = await _apiClient.GetGuildMemberAsync(
+                        SelectedGuild.Id,
+                        slotState.SelectedUserId,
+                        CancellationToken.None);
+
+                    if (member != null)
+                    {
+                        AddMemberSorted(member);
+                    }
+                }
+
+                slot.SelectedMember = member;
             }
         }
 
@@ -254,7 +272,8 @@ namespace DiscordAvatars.ViewModels
         {
             var state = new AppState
             {
-                SelectedGuildId = SelectedGuild?.Id
+                SelectedGuildId = SelectedGuild?.Id,
+                SelectedFolderPath = SelectedFolderPath
             };
 
             var slots = GetSlots();
@@ -356,6 +375,25 @@ namespace DiscordAvatars.ViewModels
         private MemberSlotViewModel[] GetSlots()
         {
             return new[] { Slot1, Slot2, Slot3, Slot4 };
+        }
+
+        private void AddMemberSorted(DiscordUser member)
+        {
+            if (Members.Any(m => m.Id == member.Id))
+            {
+                return;
+            }
+
+            var index = 0;
+            for (; index < Members.Count; index++)
+            {
+                if (string.Compare(Members[index].DisplayName, member.DisplayName, StringComparison.OrdinalIgnoreCase) > 0)
+                {
+                    break;
+                }
+            }
+
+            Members.Insert(index, member);
         }
 
         private static bool TryEnsureWritable(string path, out string message)
