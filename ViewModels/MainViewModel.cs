@@ -4,6 +4,7 @@ using DiscordAvatars.Models;
 using DiscordAvatars.Services;
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -18,6 +19,7 @@ namespace DiscordAvatars.ViewModels
         private readonly AppStateStore _stateStore;
         private AppState? _loadedState;
         private bool _isRestoringState;
+        private readonly SemaphoreSlim _membersLoadLock = new(1, 1);
 
         public ObservableCollection<DiscordGuild> Guilds { get; } = new();
         public ObservableCollection<DiscordUser> Members { get; } = new();
@@ -124,19 +126,21 @@ namespace DiscordAvatars.ViewModels
                 StatusMessage = "El bot no esta en ningun servidor disponible.";
             }
 
-            if (SelectedGuild == null && Guilds.Count > 0)
-            {
-                SelectedGuild = Guilds[0];
-            }
-            else
-            {
-                UpdateButtonStates();
-            }
-
             if (_loadedState != null)
             {
                 await ApplySavedStateAsync(_loadedState);
                 _loadedState = null;
+            }
+            else
+            {
+                if (SelectedGuild == null && Guilds.Count > 0)
+                {
+                    SelectedGuild = Guilds[0];
+                }
+                else
+                {
+                    UpdateButtonStates();
+                }
             }
         }
 
@@ -173,6 +177,9 @@ namespace DiscordAvatars.ViewModels
 
         private async Task LoadMembersAsync()
         {
+            await _membersLoadLock.WaitAsync();
+            try
+            {
             Members.Clear();
 
             if (SelectedGuild == null)
@@ -189,12 +196,23 @@ namespace DiscordAvatars.ViewModels
                 SelectedGuild.Id,
                 CancellationToken.None);
 
+            var seen = new HashSet<string>();
             foreach (var member in members.OrderBy(m => m.DisplayName, StringComparer.OrdinalIgnoreCase))
             {
+                if (!seen.Add(member.Id))
+                {
+                    continue;
+                }
+
                 Members.Add(member);
             }
 
             RemoveInvalidSelections();
+            }
+            finally
+            {
+                _membersLoadLock.Release();
+            }
         }
 
         private async Task ApplySavedStateAsync(AppState state)
