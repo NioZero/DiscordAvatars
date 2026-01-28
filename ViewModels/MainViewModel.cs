@@ -65,10 +65,10 @@ namespace DiscordAvatars.ViewModels
             RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => CanRefresh);
             RefreshMembersCommand = new AsyncRelayCommand(RefreshMembersAsync, () => CanRefreshMembers);
 
-            Slot1 = new MemberSlotViewModel(Members);
-            Slot2 = new MemberSlotViewModel(Members);
-            Slot3 = new MemberSlotViewModel(Members);
-            Slot4 = new MemberSlotViewModel(Members);
+            Slot1 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player1.png");
+            Slot2 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player2.png");
+            Slot3 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player3.png");
+            Slot4 = new MemberSlotViewModel(Members, "ms-appx:///Assets/Placeholders/player4.png");
 
             UpdateButtonStates();
             _ = InitializeAsync();

@@ -15,12 +15,15 @@ namespace DiscordAvatars.ViewModels
         private string _displayName = "Sin seleccionar";
         private BitmapImage? _avatarImage;
         private string _searchText = string.Empty;
+        private readonly BitmapImage _placeholderImage;
 
-        public MemberSlotViewModel(ObservableCollection<DiscordUser> members)
+        public MemberSlotViewModel(ObservableCollection<DiscordUser> members, string placeholderUri)
         {
             Members = members;
             FilteredMembers = new ObservableCollection<DiscordUser>();
             Members.CollectionChanged += OnMembersChanged;
+            _placeholderImage = new BitmapImage(new Uri(placeholderUri));
+            _avatarImage = _placeholderImage;
             RefreshFilteredMembers();
         }
 
@@ -81,7 +84,7 @@ namespace DiscordAvatars.ViewModels
 
             var avatarUrl = SelectedMember?.AvatarUrl;
             AvatarImage = string.IsNullOrWhiteSpace(avatarUrl)
-                ? null
+                ? _placeholderImage
                 : new BitmapImage(new Uri(avatarUrl));
 
             if (!string.IsNullOrWhiteSpace(SelectedMember?.DisplayName))
