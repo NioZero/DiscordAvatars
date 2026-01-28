@@ -12,8 +12,7 @@ namespace DiscordAvatars.ViewModels
 {
     public sealed partial class MainViewModel : ObservableObject
     {
-        private readonly DiscordOAuthOptions _options;
-        private readonly DiscordOAuthService _oauthService;
+        private readonly DiscordApiOptions _options;
         private readonly DiscordApiClient _apiClient;
 
         public ObservableCollection<DiscordGuild> Guilds { get; } = new();
@@ -24,24 +23,17 @@ namespace DiscordAvatars.ViewModels
         public MemberSlotViewModel Slot3 { get; }
         public MemberSlotViewModel Slot4 { get; }
 
-        public IAsyncRelayCommand LoginCommand { get; }
         public IAsyncRelayCommand RefreshCommand { get; }
         public IAsyncRelayCommand RefreshMembersCommand { get; }
 
         [ObservableProperty]
-        private string statusMessage = "Listo para iniciar sesion.";
+        private string statusMessage = "Listo.";
 
         [ObservableProperty]
-        private string footerMessage = "Configura DISCORD_CLIENT_ID, DISCORD_REDIRECT_URI (opcional), DISCORD_CLIENT_SECRET (opcional) y DISCORD_BOT_TOKEN (con Server Members Intent) para cargar usuarios.";
+        private string footerMessage = "Configura DISCORD_BOT_TOKEN (con Server Members Intent) para cargar servidores y usuarios.";
 
         [ObservableProperty]
         private bool isBusy;
-
-        [ObservableProperty]
-        private bool isAuthenticated;
-
-        [ObservableProperty]
-        private bool canLogin = true;
 
         [ObservableProperty]
         private bool canRefresh;
@@ -54,11 +46,9 @@ namespace DiscordAvatars.ViewModels
 
         public MainViewModel()
         {
-            _options = new DiscordOAuthOptions();
-            _oauthService = new DiscordOAuthService(_options);
+            _options = new DiscordApiOptions();
             _apiClient = new DiscordApiClient(_options);
 
-            LoginCommand = new AsyncRelayCommand(LoginAsync, () => CanLogin);
             RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => CanRefresh);
             RefreshMembersCommand = new AsyncRelayCommand(RefreshMembersAsync, () => CanRefreshMembers);
 
@@ -68,47 +58,22 @@ namespace DiscordAvatars.ViewModels
             Slot4 = new MemberSlotViewModel(Members);
 
             UpdateButtonStates();
+            _ = InitializeAsync();
         }
 
-        private async Task LoginAsync()
+        private async Task InitializeAsync()
         {
-            if (string.IsNullOrWhiteSpace(_options.ClientId))
+            if (!string.IsNullOrWhiteSpace(_options.BotToken))
             {
-                StatusMessage = "Falta DISCORD_CLIENT_ID. Configuralo y reinicia la app.";
-                return;
-            }
-
-            try
-            {
-                IsBusy = true;
-                StatusMessage = "Abriendo login de Discord...";
-
-                await _oauthService.LoginAsync(CancellationToken.None);
-
-                IsAuthenticated = _oauthService.HasValidToken;
-                StatusMessage = IsAuthenticated ? "Login completado." : "Login incompleto.";
-
-                if (IsAuthenticated)
-                {
-                    await LoadGuildsAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                StatusMessage = $"Login fallo: {ex.Message}";
-            }
-            finally
-            {
-                IsBusy = false;
+                await RefreshAsync();
             }
         }
 
         private async Task RefreshAsync()
         {
-            if (!_oauthService.HasValidToken)
+            if (string.IsNullOrWhiteSpace(_options.BotToken))
             {
-                StatusMessage = "Necesitas iniciar sesion primero.";
-                IsAuthenticated = false;
+                StatusMessage = "Falta DISCORD_BOT_TOKEN para cargar servidores.";
                 return;
             }
 
@@ -133,23 +98,15 @@ namespace DiscordAvatars.ViewModels
         {
             Guilds.Clear();
 
-            var token = _oauthService.CurrentToken?.AccessToken;
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                throw new InvalidOperationException("Access token no disponible.");
-            }
-
-            var guilds = await _apiClient.GetGuildsAsync(token, CancellationToken.None);
-            var filtered = guilds.Where(g => g.HasMemberListAccess).ToList();
-
-            foreach (var guild in filtered)
+            var guilds = await _apiClient.GetGuildsAsync(CancellationToken.None);
+            foreach (var guild in guilds)
             {
                 Guilds.Add(guild);
             }
 
             if (Guilds.Count == 0 && guilds.Count > 0)
             {
-                StatusMessage = "No tienes permisos para listar usuarios en tus servidores.";
+                StatusMessage = "El bot no esta en ningun servidor disponible.";
             }
 
             if (SelectedGuild == null && Guilds.Count > 0)
@@ -167,12 +124,6 @@ namespace DiscordAvatars.ViewModels
             if (SelectedGuild == null)
             {
                 StatusMessage = "Selecciona un servidor primero.";
-                return;
-            }
-
-            if (!IsAuthenticated)
-            {
-                StatusMessage = "Necesitas iniciar sesion primero.";
                 return;
             }
 
@@ -214,7 +165,6 @@ namespace DiscordAvatars.ViewModels
             }
 
             var members = await _apiClient.GetGuildMembersAsync(
-                _options.BotToken,
                 SelectedGuild.Id,
                 CancellationToken.None);
 
@@ -263,11 +213,6 @@ namespace DiscordAvatars.ViewModels
             UpdateButtonStates();
         }
 
-        partial void OnIsAuthenticatedChanged(bool value)
-        {
-            UpdateButtonStates();
-        }
-
         partial void OnSelectedGuildChanged(DiscordGuild? value)
         {
             UpdateButtonStates();
@@ -286,10 +231,8 @@ namespace DiscordAvatars.ViewModels
 
         private void UpdateButtonStates()
         {
-            CanLogin = !IsBusy;
-            CanRefresh = !IsBusy && IsAuthenticated;
-            CanRefreshMembers = !IsBusy && SelectedGuild != null && IsAuthenticated && !string.IsNullOrWhiteSpace(_options.BotToken);
-            LoginCommand.NotifyCanExecuteChanged();
+            CanRefresh = !IsBusy && !string.IsNullOrWhiteSpace(_options.BotToken);
+            CanRefreshMembers = !IsBusy && SelectedGuild != null && !string.IsNullOrWhiteSpace(_options.BotToken);
             RefreshCommand.NotifyCanExecuteChanged();
             RefreshMembersCommand.NotifyCanExecuteChanged();
         }

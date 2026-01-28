@@ -12,24 +12,24 @@ namespace DiscordAvatars.Services
     public sealed class DiscordApiClient
     {
         private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-        private readonly DiscordOAuthOptions _options;
+        private readonly DiscordApiOptions _options;
         private readonly HttpClient _httpClient;
 
-        public DiscordApiClient(DiscordOAuthOptions options, HttpClient? httpClient = null)
+        public DiscordApiClient(DiscordApiOptions options, HttpClient? httpClient = null)
         {
             _options = options;
             _httpClient = httpClient ?? new HttpClient();
         }
 
-        public async Task<IReadOnlyList<DiscordGuild>> GetGuildsAsync(string accessToken, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<DiscordGuild>> GetGuildsAsync(CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(accessToken))
+            if (string.IsNullOrWhiteSpace(_options.BotToken))
             {
-                throw new ArgumentException("Access token vacio.", nameof(accessToken));
+                throw new InvalidOperationException("DISCORD_BOT_TOKEN no esta configurado.");
             }
 
             using var request = new HttpRequestMessage(HttpMethod.Get, $"{_options.ApiBase}/users/@me/guilds");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bot", _options.BotToken);
 
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -44,13 +44,12 @@ namespace DiscordAvatars.Services
         }
 
         public async Task<IReadOnlyList<DiscordUser>> GetGuildMembersAsync(
-            string botToken,
             string guildId,
             CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(botToken))
+            if (string.IsNullOrWhiteSpace(_options.BotToken))
             {
-                throw new ArgumentException("Bot token vacio.", nameof(botToken));
+                throw new InvalidOperationException("DISCORD_BOT_TOKEN no esta configurado.");
             }
 
             if (string.IsNullOrWhiteSpace(guildId))
@@ -61,7 +60,7 @@ namespace DiscordAvatars.Services
             using var request = new HttpRequestMessage(
                 HttpMethod.Get,
                 $"{_options.ApiBase}/guilds/{guildId}/members?limit=1000");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bot", botToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bot", _options.BotToken);
 
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
