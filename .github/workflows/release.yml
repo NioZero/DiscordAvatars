@@ -1,0 +1,53 @@
+name: Release (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g., 1.0.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Publish (win-x64)
+        run: >
+          dotnet publish
+          -c Release
+          -r win-x64
+          --self-contained true
+          /p:PublishSingleFile=true
+          /p:PublishTrimmed=false
+          /p:Version=${{ inputs.version }}
+          /p:FileVersion=${{ inputs.version }}
+          /p:AssemblyVersion=${{ inputs.version }}
+          -o .\artifacts\DiscordAvatars-${{ inputs.version }}
+
+      - name: Zip artifact
+        shell: pwsh
+        run: |
+          $zip = "DiscordAvatars-${{ inputs.version }}-win-x64.zip"
+          Compress-Archive -Path ".\artifacts\DiscordAvatars-${{ inputs.version }}\*" -DestinationPath $zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ inputs.version }}"
+          name: "DiscordAvatars v${{ inputs.version }}"
+          files: "DiscordAvatars-${{ inputs.version }}-win-x64.zip"
