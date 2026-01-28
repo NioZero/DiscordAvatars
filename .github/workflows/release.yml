@@ -42,6 +42,18 @@ jobs:
           /p:AssemblyVersion=${{ inputs.version }}
           -o .\artifacts\DiscordAvatars-${{ inputs.version }}
 
+      - name: Add Windows App Runtime redist (offline)
+        shell: pwsh
+        run: |
+          $global = (dotnet nuget locals global-packages -l) -replace 'global-packages:\s*', ''
+          $redist = Join-Path $global "microsoft.windowsappruntime.redist\1.8.260101001\runtimes\win-x64\native"
+          if (-not (Test-Path $redist)) {
+            throw "Windows App Runtime redist not found at $redist"
+          }
+          $dest = ".\artifacts\DiscordAvatars-${{ inputs.version }}\WindowsAppRuntime"
+          New-Item -ItemType Directory -Path $dest -Force | Out-Null
+          Copy-Item -Path (Join-Path $redist "*") -Destination $dest -Recurse -Force
+
       - name: Zip artifact
         shell: pwsh
         run: |
