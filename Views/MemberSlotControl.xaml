@@ -20,13 +20,16 @@
             </Grid.RowDefinitions>
 
             <ContentControl Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" IsEnabled="{Binding IsActive}">
-                <Border
-                    Width="96"
-                    Height="96"
-                    BorderThickness="1"
-                    BorderBrush="Gray">
-                    <Image Source="{Binding AvatarImage}" Stretch="UniformToFill" />
-                </Border>
+                <StackPanel Spacing="6" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding DisplayName}" TextAlignment="Center" />
+                    <Border
+                        Width="96"
+                        Height="96"
+                        BorderThickness="1"
+                        BorderBrush="Gray">
+                        <Image Source="{Binding AvatarImage}" Stretch="UniformToFill" />
+                    </Border>
+                </StackPanel>
             </ContentControl>
 
             <CheckBox
@@ -54,7 +57,6 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <TextBlock Text="{Binding DisplayName}" FontSize="16" />
                 </StackPanel>
             </ContentControl>
         </Grid>
