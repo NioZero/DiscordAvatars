@@ -34,7 +34,7 @@ jobs:
           -r win-x64
           --self-contained true
           /p:PublishSingleFile=false
-          /p:WindowsAppSDKSelfContained=true
+          /p:WindowsAppSDKSelfContained=false
           /p:WindowsPackageType=None
           /p:PublishTrimmed=false
           /p:Version=${{ inputs.version }}
