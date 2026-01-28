@@ -39,6 +39,8 @@
                 <StackPanel Spacing="6">
                     <ComboBox
                         HorizontalAlignment="Stretch"
+                        MinWidth="280"
+                        Width="Auto"
                         ItemsSource="{Binding FilteredMembers}"
                         IsEditable="True"
                         Text="{Binding SearchText, Mode=TwoWay}"
