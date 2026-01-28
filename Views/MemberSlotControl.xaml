@@ -1,64 +1,68 @@
 <UserControl
     x:Class="DiscordAvatars.Views.MemberSlotControl"
+    x:Name="Root"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Border BorderBrush="Gray"
-            BorderThickness="1"
-            Padding="12">
-        <Grid ColumnSpacing="16" RowSpacing="8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+    <StackPanel Spacing="8">
+        <TextBlock Text="{Binding Title, ElementName=Root}" FontWeight="SemiBold" />
+        <Border BorderBrush="Gray"
+                BorderThickness="1"
+                Padding="12">
+            <Grid ColumnSpacing="16" RowSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <ContentControl Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" IsEnabled="{Binding IsActive}">
-                <StackPanel Spacing="6" HorizontalAlignment="Center">
-                    <TextBlock Text="{Binding DisplayName}" TextAlignment="Center" />
-                    <Border
-                        Width="96"
-                        Height="96"
-                        BorderThickness="1"
-                        BorderBrush="Gray">
-                        <Image Source="{Binding AvatarImage}" Stretch="UniformToFill" />
-                    </Border>
-                </StackPanel>
-            </ContentControl>
+                <ContentControl Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" IsEnabled="{Binding IsActive}">
+                    <StackPanel Spacing="6" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding DisplayName}" TextAlignment="Center" />
+                        <Border
+                            Width="96"
+                            Height="96"
+                            BorderThickness="1"
+                            BorderBrush="Gray">
+                            <Image Source="{Binding AvatarImage}" Stretch="UniformToFill" />
+                        </Border>
+                    </StackPanel>
+                </ContentControl>
 
-            <CheckBox
-                Grid.Column="1"
-                Grid.Row="0"
-                Content="Activo"
-                IsChecked="{Binding IsActive, Mode=TwoWay}" />
+                <CheckBox
+                    Grid.Column="1"
+                    Grid.Row="0"
+                    Content="Activo"
+                    IsChecked="{Binding IsActive, Mode=TwoWay}" />
 
-            <ContentControl Grid.Column="1" Grid.Row="1" IsEnabled="{Binding IsActive}">
-                <StackPanel Spacing="6">
-                    <TextBox
-                        HorizontalAlignment="Stretch"
-                        MinWidth="280"
-                        PlaceholderText="Buscar usuario"
-                        Text="{Binding SearchText, Mode=TwoWay}" />
-                    <ComboBox
-                        HorizontalAlignment="Stretch"
-                        MinWidth="280"
-                        Width="Auto"
-                        ItemsSource="{Binding FilteredMembers}"
-                        SelectedItem="{Binding SelectedMember, Mode=TwoWay}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding DisplayName}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </StackPanel>
-            </ContentControl>
-        </Grid>
-    </Border>
+                <ContentControl Grid.Column="1" Grid.Row="1" IsEnabled="{Binding IsActive}">
+                    <StackPanel Spacing="6">
+                        <TextBox
+                            HorizontalAlignment="Stretch"
+                            MinWidth="280"
+                            PlaceholderText="Buscar usuario"
+                            Text="{Binding SearchText, Mode=TwoWay}" />
+                        <ComboBox
+                            HorizontalAlignment="Stretch"
+                            MinWidth="280"
+                            Width="Auto"
+                            ItemsSource="{Binding FilteredMembers}"
+                            SelectedItem="{Binding SelectedMember, Mode=TwoWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DisplayName}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </ContentControl>
+            </Grid>
+        </Border>
+    </StackPanel>
 </UserControl>

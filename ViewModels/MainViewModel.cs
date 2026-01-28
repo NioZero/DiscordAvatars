@@ -4,6 +4,7 @@ using DiscordAvatars.Models;
 using DiscordAvatars.Services;
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,6 +35,12 @@ namespace DiscordAvatars.ViewModels
 
         [ObservableProperty]
         private string footerMessage = "Configura DISCORD_BOT_TOKEN (con Server Members Intent) para cargar servidores y usuarios.";
+
+        [ObservableProperty]
+        private string selectedFolderPath = string.Empty;
+
+        [ObservableProperty]
+        private string folderStatusMessage = string.Empty;
 
         [ObservableProperty]
         private bool isBusy;
@@ -266,6 +273,22 @@ namespace DiscordAvatars.ViewModels
             _stateStore.Save(state);
         }
 
+        public void SetSelectedFolder(string? path)
+        {
+            SelectedFolderPath = path ?? string.Empty;
+            FolderStatusMessage = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(SelectedFolderPath))
+            {
+                return;
+            }
+
+            if (!TryEnsureWritable(SelectedFolderPath, out var message))
+            {
+                FolderStatusMessage = message;
+            }
+        }
+
         private void RemoveInvalidSelections()
         {
             if (Members.Count == 0)
@@ -333,6 +356,27 @@ namespace DiscordAvatars.ViewModels
         private MemberSlotViewModel[] GetSlots()
         {
             return new[] { Slot1, Slot2, Slot3, Slot4 };
+        }
+
+        private static bool TryEnsureWritable(string path, out string message)
+        {
+            try
+            {
+                var testFile = Path.Combine(path, $".discordavatars_write_test_{Guid.NewGuid():N}.tmp");
+                using (var stream = new FileStream(testFile, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    stream.WriteByte(0);
+                }
+
+                File.Delete(testFile);
+                message = string.Empty;
+                return true;
+            }
+            catch
+            {
+                message = "No tienes permisos de escritura en la carpeta seleccionada.";
+                return false;
+            }
         }
     }
 }

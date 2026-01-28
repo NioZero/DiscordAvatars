@@ -1,4 +1,8 @@
 using Microsoft.UI.Xaml;
+using System.Threading.Tasks;
+using Windows.Foundation;
+using Windows.Storage;
+using Windows.Storage.Pickers;
 using DiscordAvatars.ViewModels;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -24,6 +28,42 @@ namespace DiscordAvatars
         private void OnClosed(object sender, WindowEventArgs args)
         {
             _viewModel.SaveState();
+        }
+
+        private async void OnSelectFolderClick(object sender, RoutedEventArgs e)
+        {
+            var picker = new FolderPicker();
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hWnd);
+            picker.FileTypeFilter.Add("*");
+
+            StorageFolder folder = await PickSingleFolderAsync(picker);
+            if (folder != null)
+            {
+                _viewModel.SetSelectedFolder(folder.Path);
+            }
+        }
+
+        private static Task<StorageFolder> PickSingleFolderAsync(FolderPicker picker)
+        {
+            var tcs = new TaskCompletionSource<StorageFolder>();
+            var operation = picker.PickSingleFolderAsync();
+            operation.Completed = (op, status) =>
+            {
+                switch (status)
+                {
+                    case AsyncStatus.Completed:
+                        tcs.TrySetResult(op.GetResults());
+                        break;
+                    case AsyncStatus.Error:
+                        tcs.TrySetException(op.ErrorCode);
+                        break;
+                    default:
+                        tcs.TrySetCanceled();
+                        break;
+                }
+            };
+            return tcs.Task;
         }
     }
 }

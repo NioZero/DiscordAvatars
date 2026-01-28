@@ -14,6 +14,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -27,7 +28,20 @@
                 IsEnabled="{Binding CanRefreshMembers}" />
         </StackPanel>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12">
+        <StackPanel Grid.Row="1" Spacing="6">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Button
+                    Content="Seleccionar carpeta archivos"
+                    Click="OnSelectFolderClick" />
+                <TextBlock
+                    Text="{Binding SelectedFolderPath}"
+                    TextTrimming="CharacterEllipsis"
+                    Width="420" />
+            </StackPanel>
+            <TextBlock Text="{Binding FolderStatusMessage}" Foreground="Tomato" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
             <TextBlock Text="Servidor:" VerticalAlignment="Center" />
             <ComboBox
                 Width="320"
@@ -37,7 +51,7 @@
             <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" VerticalAlignment="Center" />
         </StackPanel>
 
-        <Grid Grid.Row="2" ColumnSpacing="16" RowSpacing="16">
+        <Grid Grid.Row="3" ColumnSpacing="16" RowSpacing="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
@@ -47,14 +61,14 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <views:MemberSlotControl Grid.Row="0" Grid.Column="0" DataContext="{Binding Slot1}" />
-            <views:MemberSlotControl Grid.Row="0" Grid.Column="1" DataContext="{Binding Slot2}" />
-            <views:MemberSlotControl Grid.Row="1" Grid.Column="0" DataContext="{Binding Slot3}" />
-            <views:MemberSlotControl Grid.Row="1" Grid.Column="1" DataContext="{Binding Slot4}" />
+            <views:MemberSlotControl Grid.Row="0" Grid.Column="0" Title="Player 1" DataContext="{Binding Slot1}" />
+            <views:MemberSlotControl Grid.Row="0" Grid.Column="1" Title="Player 2" DataContext="{Binding Slot2}" />
+            <views:MemberSlotControl Grid.Row="1" Grid.Column="0" Title="Player 3" DataContext="{Binding Slot3}" />
+            <views:MemberSlotControl Grid.Row="1" Grid.Column="1" Title="Player 4" DataContext="{Binding Slot4}" />
         </Grid>
 
         <TextBlock
-            Grid.Row="3"
+            Grid.Row="4"
             Text="{Binding FooterMessage}"
             Opacity="0.7"
             TextWrapping="Wrap" />
