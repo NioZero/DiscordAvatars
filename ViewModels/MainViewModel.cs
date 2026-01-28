@@ -14,6 +14,9 @@ namespace DiscordAvatars.ViewModels
     {
         private readonly DiscordApiOptions _options;
         private readonly DiscordApiClient _apiClient;
+        private readonly AppStateStore _stateStore;
+        private AppState? _loadedState;
+        private bool _isRestoringState;
 
         public ObservableCollection<DiscordGuild> Guilds { get; } = new();
         public ObservableCollection<DiscordUser> Members { get; } = new();
@@ -48,6 +51,7 @@ namespace DiscordAvatars.ViewModels
         {
             _options = new DiscordApiOptions();
             _apiClient = new DiscordApiClient(_options);
+            _stateStore = new AppStateStore();
 
             RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => CanRefresh);
             RefreshMembersCommand = new AsyncRelayCommand(RefreshMembersAsync, () => CanRefreshMembers);
@@ -65,6 +69,7 @@ namespace DiscordAvatars.ViewModels
         {
             if (!string.IsNullOrWhiteSpace(_options.BotToken))
             {
+                _loadedState = _stateStore.Load();
                 await RefreshAsync();
                 return;
             }
@@ -119,6 +124,12 @@ namespace DiscordAvatars.ViewModels
             else
             {
                 UpdateButtonStates();
+            }
+
+            if (_loadedState != null)
+            {
+                await ApplySavedStateAsync(_loadedState);
+                _loadedState = null;
             }
         }
 
@@ -179,6 +190,82 @@ namespace DiscordAvatars.ViewModels
             RemoveInvalidSelections();
         }
 
+        private async Task ApplySavedStateAsync(AppState state)
+        {
+            if (Guilds.Count == 0)
+            {
+                return;
+            }
+
+            _isRestoringState = true;
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(state.SelectedGuildId))
+                {
+                    var target = Guilds.FirstOrDefault(g => g.Id == state.SelectedGuildId);
+                    if (target != null)
+                    {
+                        SelectedGuild = target;
+                    }
+                }
+
+                if (SelectedGuild == null)
+                {
+                    SelectedGuild = Guilds[0];
+                }
+            }
+            finally
+            {
+                _isRestoringState = false;
+            }
+
+            await LoadMembersAsync();
+            ApplySlots(state);
+        }
+
+        private void ApplySlots(AppState state)
+        {
+            var slots = GetSlots();
+            for (var index = 0; index < slots.Length; index++)
+            {
+                var slot = slots[index];
+                var slotState = state.Slots.Count > index ? state.Slots[index] : null;
+                slot.IsActive = slotState?.IsActive ?? false;
+
+                if (!string.IsNullOrWhiteSpace(slotState?.SelectedUserId))
+                {
+                    slot.SelectedMember = Members.FirstOrDefault(m => m.Id == slotState.SelectedUserId);
+                }
+                else
+                {
+                    slot.SelectedMember = null;
+                }
+            }
+        }
+
+        public void SaveState()
+        {
+            var state = new AppState
+            {
+                SelectedGuildId = SelectedGuild?.Id
+            };
+
+            var slots = GetSlots();
+            for (var index = 0; index < slots.Length; index++)
+            {
+                var slot = slots[index];
+                if (state.Slots.Count <= index)
+                {
+                    state.Slots.Add(new SlotState());
+                }
+
+                state.Slots[index].IsActive = slot.IsActive;
+                state.Slots[index].SelectedUserId = slot.SelectedMember?.Id;
+            }
+
+            _stateStore.Save(state);
+        }
+
         private void RemoveInvalidSelections()
         {
             if (Members.Count == 0)
@@ -229,7 +316,10 @@ namespace DiscordAvatars.ViewModels
                 return;
             }
 
-            _ = RefreshMembersAsync();
+            if (!_isRestoringState)
+            {
+                _ = RefreshMembersAsync();
+            }
         }
 
         private void UpdateButtonStates()
@@ -238,6 +328,11 @@ namespace DiscordAvatars.ViewModels
             CanRefreshMembers = !IsBusy && SelectedGuild != null;
             RefreshCommand.NotifyCanExecuteChanged();
             RefreshMembersCommand.NotifyCanExecuteChanged();
+        }
+
+        private MemberSlotViewModel[] GetSlots()
+        {
+            return new[] { Slot1, Slot2, Slot3, Slot4 };
         }
     }
 }

@@ -11,12 +11,19 @@ namespace DiscordAvatars
     /// </summary>
     public sealed partial class MainWindow : Window
     {
+        private readonly MainViewModel _viewModel;
+
         public MainWindow()
         {
             this.InitializeComponent();
-            Root.DataContext = new MainViewModel();
+            _viewModel = new MainViewModel();
+            Root.DataContext = _viewModel;
+            Closed += OnClosed;
         }
 
-        
+        private void OnClosed(object sender, WindowEventArgs args)
+        {
+            _viewModel.SaveState();
+        }
     }
 }
